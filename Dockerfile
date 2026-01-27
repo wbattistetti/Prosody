@@ -3,13 +3,13 @@ FROM python:3.10
 
 WORKDIR /app
 
-# Copia tutto il progetto
+# Copia tutto il progetto (inclusa la cartella MelodyExtractorServer)
 COPY . .
 
-# Installa le dipendenze
+# Installa le dipendenze dal percorso corretto
 RUN pip install --no-cache-dir -r MelodyExtractorServer/requirements.txt
 
-# Espone la porta
+# Espone la porta su cui Uvicorn ascolta
 EXPOSE 8000
 
 # Avvia FastAPI dal percorso corretto
