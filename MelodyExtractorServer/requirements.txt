@@ -8,4 +8,5 @@ scipy==1.11.4
 soundfile==0.12.1
 hmmlearn
 matplotlib
+eyed3
 
