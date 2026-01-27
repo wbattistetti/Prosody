@@ -55,7 +55,12 @@ def favicon():
 def extract_prosody(request: AudioRequest):
     try:
         # Decodifica audio base64
-        audio_bytes = base64.b64decode(request.audio_base64)
+        print("=== DEBUG SERVER ===") 
+        print("Base64 length:", len(request.audio_base64)) 
+        audio_bytes = base64.b64decode(request.audio_base64) 
+        print("Decoded bytes:", len(audio_bytes)) 
+        print("First 32 bytes:", audio_bytes[:32])
+        
         audio_io = io.BytesIO(audio_bytes)
         audio_data, sr = sf.read(audio_io)
 
@@ -81,3 +86,4 @@ def extract_prosody(request: AudioRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
