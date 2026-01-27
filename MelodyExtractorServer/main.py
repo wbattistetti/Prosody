@@ -14,37 +14,58 @@ from utils.response_builder import build_response
 
 app = FastAPI()
 
+# ---------------------------
+# MODELLI
+# ---------------------------
+
 class AudioRequest(BaseModel):
     audio_base64: str
     sample_rate: int = 16000
 
-@app.post("/extract")
-def extract_prosody(req: AudioRequest):
+
+# ---------------------------
+# ENDPOINT DI SERVIZIO
+# ---------------------------
+
+@app.get("/")
+def root():
+    return {"status": "ok", "message": "Server running"}
+
+
+@app.get("/favicon.ico")
+def favicon():
+    return {}
+
+
+# ---------------------------
+# ENDPOINT PRINCIPALE
+# ---------------------------
+
+@app.post("/analyze")
+def analyze_audio(request: AudioRequest):
     try:
-        audio_bytes = base64.b64decode(req.audio_base64)
-        audio, sr = sf.read(io.BytesIO(audio_bytes))
+        # Decodifica Base64
+        audio_bytes = base64.b64decode(request.audio_base64)
+        audio_buffer = io.BytesIO(audio_bytes)
 
-        if len(audio) < sr * 0.5:
-            raise HTTPException(status_code=400, detail="Audio too short")
+        # Caricamento audio
+        audio_data, sr = sf.read(audio_buffer)
 
-        pitch_data = extract_pitch(audio, sr)
-        energy_data = extract_energy(audio, sr)
-        rhythm_data = extract_rhythm(audio, sr)
-        pauses = extract_pauses(audio, sr)
+        # Estrazioni
+        pitch = extract_pitch(audio_data, sr)
+        energy = extract_energy(audio_data, sr)
+        rhythm = extract_rhythm(audio_data, sr)
+        pauses = extract_pauses(audio_data, sr)
 
-        normalized = normalize_contours(
-            pitch_data["contour"],
-            energy_data["contour"]
-        )
+        # Normalizzazione
+        normalized = normalize_contours(pitch, energy, rhythm)
 
+        # Risposta finale
         return build_response(
-            pitch_data,
-            energy_data,
-            rhythm_data,
-            pauses,
-            normalized,
-            len(audio) / sr,
-            sr
+            pitch=normalized["pitch"],
+            energy=normalized["energy"],
+            rhythm=normalized["rhythm"],
+            pauses=pauses
         )
 
     except Exception as e:
