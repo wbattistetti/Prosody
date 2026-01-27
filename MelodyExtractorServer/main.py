@@ -1,12 +1,9 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import base64
 import io
 import soundfile as sf
-import tempfile
-import torch
-import whisperx
 
 from MelodyExtractorServer.extractor.pitch_analyzer import extract_pitch
 from MelodyExtractorServer.extractor.energy_analyzer import extract_energy
@@ -50,49 +47,8 @@ def favicon():
     return {}
 
 # -----------------------------------------------------
-# WHISPERX: CARICAMENTO MODELLO UNA SOLA VOLTA
-# -----------------------------------------------------
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
-
-try:
-    whisper_model = whisperx.load_model("medium", device)
-except Exception as e:
-    print("Errore nel caricamento WhisperX:", e)
-    whisper_model = None
-
-# -----------------------------------------------------
-# ENDPOINT /transcribe (WhisperX)
-# -----------------------------------------------------
-
-@app.post("/transcribe")
-async def transcribe(audio: UploadFile = File(...)):
-    if whisper_model is None:
-        raise HTTPException(status_code=500, detail="WhisperX non è stato caricato")
-
-    # Salva file temporaneo
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-        tmp.write(await audio.read())
-        tmp_path = tmp.name
-
-    # Trascrizione
-    result = whisper_model.transcribe(tmp_path)
-
-    # Alignment
-    model_a, metadata = whisperx.load_align_model(
-        language_code=result["language"], device=device
-    )
-    aligned = whisperx.align(
-        result["segments"], model_a, metadata, tmp_path, device
-    )
-
-    return {
-        "text": result["text"],
-        "words": aligned["word_segments"]
-    }
-
-# -----------------------------------------------------
-# ENDPOINT /extract-prosody (il tuo già esistente)
+# ENDPOINT /extract-prosody
+# (UNICO ENDPOINT CHE DEVE STARE SU RAILWAY)
 # -----------------------------------------------------
 
 @app.post("/extract-prosody")
