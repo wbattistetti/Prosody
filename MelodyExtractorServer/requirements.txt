@@ -9,4 +9,6 @@ soundfile==0.12.1
 hmmlearn
 matplotlib
 eyed3
+pydub
+
 
