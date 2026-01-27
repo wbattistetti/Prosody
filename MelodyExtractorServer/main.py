@@ -11,7 +11,7 @@ from MelodyExtractorServer.extractor.pause_detector import extract_pauses
 from MelodyExtractorServer.extractor.normalizer import normalize_contours
 
 
-from utils.response_builder import build_response
+from MelodyExtractorServer.utils.response_builder import build_response
 
 app = FastAPI()
 
@@ -71,4 +71,5 @@ def analyze_audio(request: AudioRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
