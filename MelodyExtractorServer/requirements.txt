@@ -10,5 +10,7 @@ hmmlearn
 matplotlib
 eyed3
 pydub
+imbalanced-learn
+
 
 
