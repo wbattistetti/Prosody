@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import base64
 import io
@@ -9,11 +10,19 @@ from MelodyExtractorServer.extractor.energy_analyzer import extract_energy
 from MelodyExtractorServer.extractor.rhythm_analyzer import extract_rhythm
 from MelodyExtractorServer.extractor.pause_detector import extract_pauses
 from MelodyExtractorServer.extractor.normalizer import normalize_contours
-
-
 from MelodyExtractorServer.utils.response_builder import build_response
 
 app = FastAPI()
+
+# ⭐ CORS QUI, subito dopo app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # per test va benissimo
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # ---------------------------
 # MODELLI
@@ -71,5 +80,6 @@ def analyze_audio(request: AudioRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
