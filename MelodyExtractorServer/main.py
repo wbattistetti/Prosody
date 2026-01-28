@@ -5,66 +5,54 @@ import base64
 import io
 import soundfile as sf
 
-from MelodyExtractorServer.extractor.pitch_analyzer import extract_pitch
-from MelodyExtractorServer.extractor.energy_analyzer import extract_energy
-from MelodyExtractorServer.extractor.rhythm_analyzer import extract_rhythm
-from MelodyExtractorServer.extractor.pause_detector import extract_pauses
-from MelodyExtractorServer.extractor.normalizer import normalize_contours
-from MelodyExtractorServer.utils.response_builder import build_response
-from MelodyExtractorServer.utils.audio_utils import convert_to_wav_pcm16
+from extractor.pitch_analyzer import extract_pitch
+from extractor.energy_analyzer import extract_energy
+from extractor.rhythm_analyzer import extract_rhythm
+from extractor.pause_detector import extract_pauses
+from extractor.normalizer import normalize_contours
 
-# -----------------------------------------------------
-# APP + CORS
-# -----------------------------------------------------
+from utils.response_builder import build_response
+from utils.audio_utils import convert_to_wav_pcm16   # <-- AGGIUNTO
+
+# ---------------------------------------------------------
+# APP SETUP
+# ---------------------------------------------------------
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ok per test
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# -----------------------------------------------------
-# MODELLI
-# -----------------------------------------------------
+# ---------------------------------------------------------
+# REQUEST MODEL
+# ---------------------------------------------------------
 
 class AudioRequest(BaseModel):
     audio_base64: str
     sample_rate: int = 16000
 
-# -----------------------------------------------------
-# ENDPOINT DI SERVIZIO
-# -----------------------------------------------------
+# ---------------------------------------------------------
+# ENDPOINT DI ESTRAZIONE
+# ---------------------------------------------------------
 
-@app.get("/")
-def root():
-    return {"status": "ok", "message": "Server running"}
-
-@app.get("/favicon.ico")
-def favicon():
-    return {}
-
-# -----------------------------------------------------
-# ENDPOINT /extract-prosody
-# (UNICO ENDPOINT CHE DEVE STARE SU RAILWAY)
-# -----------------------------------------------------
-
-@app.post("/extract-prosody")
-def extract_prosody(request: AudioRequest):
+@app.post("/extract")
+async def extract_audio_features(request: AudioRequest):
     try:
         # 1. Decodifica base64
         raw_bytes = base64.b64decode(request.audio_base64)
 
-        # 2. Conversione robusta in WAV PCM 16kHz mono
+        # 2. Conversione robusta in WAV PCM16 16kHz mono
         wav_bytes = convert_to_wav_pcm16(raw_bytes)
 
-        # 3. Carica il WAV convertito
+        # 3. Caricamento WAV convertito
         audio_data, sr = sf.read(io.BytesIO(wav_bytes))
 
-        # 4. Analisi prosodica
+        # 4. Estrazione feature
         pitch = extract_pitch(audio_data, sr)
         energy = extract_energy(audio_data, sr)
         rhythm = extract_rhythm(audio_data, sr)
@@ -74,16 +62,18 @@ def extract_prosody(request: AudioRequest):
         normalized = normalize_contours(
             pitch=pitch,
             energy=energy,
-            rhythm=rhythm,
+            rhythm=rhythm
+        )
+
+        # 6. Costruzione risposta
+        response = build_response(
+            pitch=normalized["pitch"],
+            energy=normalized["energy"],
+            rhythm=normalized["rhythm"],
             pauses=pauses
         )
 
-        # 6. Risposta finale
-        return build_response(normalized)
+        return response
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-
-
