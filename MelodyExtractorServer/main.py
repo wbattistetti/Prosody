@@ -11,6 +11,7 @@ from MelodyExtractorServer.extractor.rhythm_analyzer import extract_rhythm
 from MelodyExtractorServer.extractor.pause_detector import extract_pauses
 from MelodyExtractorServer.extractor.normalizer import normalize_contours
 from MelodyExtractorServer.utils.response_builder import build_response
+from MelodyExtractorServer.utils.audio_utils import convert_to_wav_pcm16
 
 # -----------------------------------------------------
 # APP + CORS
@@ -86,4 +87,38 @@ def extract_prosody(request: AudioRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/extract-prosody")
+def extract_prosody(request: AudioRequest):
+    try:
+        # 1. Decodifica base64
+        raw_bytes = base64.b64decode(request.audio_base64)
+
+        # 2. Conversione robusta in WAV PCM 16kHz mono
+        wav_bytes = convert_to_wav_pcm16(raw_bytes)
+
+        # 3. Carica il WAV convertito
+        audio_data, sr = sf.read(io.BytesIO(wav_bytes))
+
+        # 4. Analisi prosodica
+        pitch = extract_pitch(audio_data, sr)
+        energy = extract_energy(audio_data, sr)
+        rhythm = extract_rhythm(audio_data, sr)
+        pauses = extract_pauses(audio_data, sr)
+
+        # 5. Normalizzazione
+        normalized = normalize_contours(
+            pitch=pitch,
+            energy=energy,
+            rhythm=rhythm,
+            pauses=pauses
+        )
+
+        # 6. Risposta finale
+        return build_response(normalized)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 
