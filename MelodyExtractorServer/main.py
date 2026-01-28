@@ -55,42 +55,6 @@ def favicon():
 @app.post("/extract-prosody")
 def extract_prosody(request: AudioRequest):
     try:
-        # Decodifica audio base64
-        print("=== DEBUG SERVER ===") 
-        print("Base64 length:", len(request.audio_base64)) 
-        audio_bytes = base64.b64decode(request.audio_base64) 
-        print("Decoded bytes:", len(audio_bytes)) 
-        print("First 32 bytes:", audio_bytes[:32])
-        
-        audio_io = io.BytesIO(audio_bytes)
-        audio_data, sr = sf.read(audio_io)
-
-        # Estrazione feature
-        pitch = extract_pitch(audio_data, sr)
-        energy = extract_energy(audio_data, sr)
-        rhythm = extract_rhythm(audio_data, sr)
-        pauses = extract_pauses(audio_data, sr)
-
-        # Normalizzazione
-        pitch_norm, energy_norm = normalize_contours(pitch, energy)
-
-        # Risposta finale
-        response = build_response(
-            pitch_norm,
-            energy_norm,
-            rhythm,
-            pauses,
-            sr
-        )
-
-        return response
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/extract-prosody")
-def extract_prosody(request: AudioRequest):
-    try:
         # 1. Decodifica base64
         raw_bytes = base64.b64decode(request.audio_base64)
 
@@ -119,6 +83,7 @@ def extract_prosody(request: AudioRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 
