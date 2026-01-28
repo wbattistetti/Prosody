@@ -1,41 +1,31 @@
-import tempfile
 import subprocess
-import os
+import tempfile
 
-def convert_to_wav_pcm16(audio_bytes: bytes) -> bytes:
-    """
-    Converte QUALSIASI file audio in WAV PCM 16-bit, mono, 16kHz.
-    Restituisce i bytes del file convertito.
-    """
+def convert_to_wav_pcm16(raw_bytes: bytes) -> bytes:
+    # Salva input temporaneo (qualsiasi formato: mp3, wav, m4a, webm, ogg…)
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_in:
+        tmp_in.write(raw_bytes)
+        tmp_in_path = tmp_in.name
 
-    # 1. Salva il file originale in un file temporaneo
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".input") as f_in:
-        f_in.write(audio_bytes)
-        input_path = f_in.name
+    # Output WAV temporaneo
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_out:
+        tmp_out_path = tmp_out.name
 
-    # 2. Crea un file temporaneo per l'output WAV convertito
-    output_path = input_path + "_converted.wav"
-
-    # 3. Comando ffmpeg per convertire tutto in WAV PCM 16kHz mono
+    # Conversione ffmpeg
     cmd = [
         "ffmpeg",
-        "-y",                # sovrascrivi senza chiedere
-        "-i", input_path,    # input
-        "-ac", "1",          # mono
-        "-ar", "16000",      # 16kHz
-        "-sample_fmt", "s16",# PCM 16-bit
-        output_path
+        "-y",
+        "-i", tmp_in_path,     # ffmpeg capisce automaticamente il formato
+        "-ac", "1",            # mono
+        "-ar", "16000",        # 16kHz
+        "-sample_fmt", "s16",  # PCM16
+        tmp_out_path
     ]
 
-    # 4. Esegui ffmpeg
-    process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    # 5. Leggi il file convertito
-    with open(output_path, "rb") as f_out:
-        converted_bytes = f_out.read()
+    # Leggi WAV convertito
+    with open(tmp_out_path, "rb") as f:
+        wav_bytes = f.read()
 
-    # 6. Pulisci i file temporanei
-    os.remove(input_path)
-    os.remove(output_path)
-
-    return converted_bytes
+    return wav_bytes
