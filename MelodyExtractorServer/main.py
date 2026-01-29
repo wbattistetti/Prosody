@@ -5,14 +5,15 @@ import base64
 import io
 import soundfile as sf
 
-from extractor.pitch_analyzer import extract_pitch
-from extractor.energy_analyzer import extract_energy
-from extractor.rhythm_analyzer import extract_rhythm
-from extractor.pause_detector import extract_pauses
-from extractor.normalizer import normalize_contours
+from MelodyExtractorServer.extractor.pitch_analyzer import extract_pitch
+from MelodyExtractorServer.extractor.energy_analyzer import extract_energy
+from MelodyExtractorServer.extractor.rhythm_analyzer import extract_rhythm
+from MelodyExtractorServer.extractor.pause_detector import extract_pauses
+from MelodyExtractorServer.extractor.normalizer import normalize_contours
 
-from utils.response_builder import build_response
-from utils.audio_utils import convert_to_wav_pcm16   # <-- AGGIUNTO
+from MelodyExtractorServer.utils.response_builder import build_response
+from MelodyExtractorServer.utils.audio_utils import convert_to_wav_pcm16
+
 
 # ---------------------------------------------------------
 # APP SETUP
@@ -77,3 +78,4 @@ async def extract_audio_features(request: AudioRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
