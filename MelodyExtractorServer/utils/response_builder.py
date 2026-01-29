@@ -9,9 +9,9 @@ def build_response(pitch, energy, rhythm, pauses, normalized, duration, sr):
         if hasattr(x, "tolist"):
             return x.tolist()
 
-        # bytes → stringa base64
+        # bytes → stringa esadecimale sicura
         if isinstance(x, (bytes, bytearray)):
-            return x.decode("latin1")  # evita crash UTF-8
+            return x.hex()
 
         # lista → safe() ricorsivo
         if isinstance(x, list):
