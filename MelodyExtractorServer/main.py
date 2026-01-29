@@ -1,9 +1,10 @@
-import os 
+import os
+import io
 
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-import io
 import soundfile as sf
+import numpy as np
 
 from MelodyExtractorServer.extractor.converter import convert_to_linear16
 from MelodyExtractorServer.extractor.pitch_analyzer import extract_pitch
@@ -15,10 +16,28 @@ from MelodyExtractorServer.extractor.normalizer import normalize_contours
 # 👉 Labeling prosodico
 from MelodyExtractorServer.extractor.labeling import assign_labels
 
-# 👉 Trascrizione con Google stt
+# 👉 Trascrizione con Google STT
 from MelodyExtractorServer.extractor.transcriber_google import transcribe_with_google
 
 from MelodyExtractorServer.utils.response_builder import build_response
+
+
+# ---------------------------------------------------------
+# UTIL: conversione in tipi JSON-serializzabili
+# ---------------------------------------------------------
+
+def to_jsonable(obj):
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, (np.float32, np.float64)):
+        return float(obj)
+    if isinstance(obj, (np.int32, np.int64)):
+        return int(obj)
+    if isinstance(obj, dict):
+        return {k: to_jsonable(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [to_jsonable(x) for x in obj]
+    return obj
 
 
 # ---------------------------------------------------------
@@ -46,12 +65,12 @@ async def extractor(file: UploadFile = File(...)):
         # Carica audio
         audio_bytes = await file.read()
         audio_bytes = convert_to_linear16(audio_bytes)
-        
+
         print("DEBUG after conversion:", len(audio_bytes))
         audio_data, sr = sf.read(io.BytesIO(audio_bytes))
         print("DEBUG shape:", audio_data.shape, "sr:", sr)
-        
-        # 👉 Trascrizione con timestamp (google)
+
+        # 👉 Trascrizione con timestamp (Google)
         words = transcribe_with_google(audio_bytes)
 
         # Estrai feature prosodiche
@@ -70,18 +89,18 @@ async def extractor(file: UploadFile = File(...)):
             pauses=pauses
         )
 
-        # Costruisci risposta
+        # Costruisci risposta (tutto JSON-safe)
         response = {
             "success": True,
             "data": {
-                "pitch": normalized["pitch"],
-                "energy": normalized["energy"],
-                "rhythm": rhythm,
-                "pauses": pauses,
-                "normalized": normalized,
-                "labels": labels,
-                "words": words
-            }
+                "pitch": to_jsonable(normalized["pitch"]),
+                "energy": to_jsonable(normalized["energy"]),
+                "rhythm": to_jsonable(rhythm),
+                "pauses": to_jsonable(pauses),
+                "normalized": to_jsonable(normalized),
+                "labels": to_jsonable(labels),
+                "words": to_jsonable(words),
+            },
         }
 
         print(
@@ -91,7 +110,7 @@ async def extractor(file: UploadFile = File(...)):
             type(rhythm),
             type(pauses),
             type(labels),
-            type(words)
+            type(words),
         )
 
         return response
