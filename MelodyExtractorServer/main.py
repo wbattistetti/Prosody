@@ -12,8 +12,8 @@ from MelodyExtractorServer.extractor.normalizer import normalize_contours
 # 👉 AGGIUNTA: labeling prosodico
 from MelodyExtractorServer.extractor.labeling import assign_labels
 
-# 👉 AGGIUNTA: trascrizione con time-stamp
-from MelodyExtractorServer.extractor.transcriber import transcribe_with_timestamps
+# 👉 AGGIUNTA: trascrizione con OpenAI Whisper
+from MelodyExtractorServer.extractor.transcriber_openai import transcribe_with_openai
 
 from MelodyExtractorServer.utils.response_builder import build_response
 
@@ -44,6 +44,9 @@ async def extractor(file: UploadFile = File(...)):
         audio_bytes = await file.read()
         audio_data, sr = sf.read(io.BytesIO(audio_bytes))
 
+        # 👉 Trascrizione con time-stamp (OpenAI Whisper)
+        words = transcribe_with_openai(audio_bytes)
+
         # Estrai feature prosodiche
         pitch = extract_pitch(audio_data, sr)
         energy = extract_energy(audio_data, sr)
@@ -53,10 +56,7 @@ async def extractor(file: UploadFile = File(...)):
         # Normalizza
         normalized = normalize_contours(pitch, energy)
 
-        # 👉 AGGIUNTA: trascrizione con time-stamp
-        words = transcribe_with_timestamps(audio_data, sr)
-
-        # 👉 AGGIUNTA: genera etichette prosodiche discrete
+        # 👉 Genera etichette prosodiche discrete
         labels = assign_labels(
             pitch=normalized["pitch"],
             energy=normalized["energy"],
