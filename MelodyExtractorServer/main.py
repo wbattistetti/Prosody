@@ -18,7 +18,6 @@ from MelodyExtractorServer.extractor.labeling import assign_labels
 # 👉 Trascrizione con Google stt
 from MelodyExtractorServer.extractor.transcriber_google import transcribe_with_google
 
-
 from MelodyExtractorServer.utils.response_builder import build_response
 
 
@@ -52,8 +51,7 @@ async def extractor(file: UploadFile = File(...)):
         audio_data, sr = sf.read(io.BytesIO(audio_bytes))
         print("DEBUG shape:", audio_data.shape, "sr:", sr)
         
-        # 👉 Trascrizione con timestamp (goolgle)
-        
+        # 👉 Trascrizione con timestamp (google)
         words = transcribe_with_google(audio_bytes)
 
         # Estrai feature prosodiche
@@ -74,36 +72,29 @@ async def extractor(file: UploadFile = File(...)):
 
         # Costruisci risposta
         response = {
-        "success": True,
-        "data": {
-            "pitch": normalized["pitch"],
-            "energy": normalized["energy"],
-            "rhythm": rhythm,
-            "pauses": pauses,
-            "normalized": normalized,
-            "labels": labels,
-            "words": words
+            "success": True,
+            "data": {
+                "pitch": normalized["pitch"],
+                "energy": normalized["energy"],
+                "rhythm": rhythm,
+                "pauses": pauses,
+                "normalized": normalized,
+                "labels": labels,
+                "words": words
+            }
         }
-    }
 
-    print(
-        "DEBUG types:",
-        type(normalized["pitch"]),
-        type(normalized["energy"]),
-        type(rhythm),
-        type(pauses),
-        type(labels),
-        type(words)
-    )
+        print(
+            "DEBUG types:",
+            type(normalized["pitch"]),
+            type(normalized["energy"]),
+            type(rhythm),
+            type(pauses),
+            type(labels),
+            type(words)
+        )
 
-    return response
+        return response
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-
-
-
-
-
