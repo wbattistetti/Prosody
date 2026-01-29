@@ -44,6 +44,10 @@ class AudioRequest(BaseModel):
 @app.post("/extract")
 async def extract_audio_features(request: AudioRequest):
     try:
+        # DEBUG: cosa arriva dal frontend 
+        print("DEBUG RAW REQUEST:", request) 
+        print("DEBUG BASE64 TYPE:", type(request.audio_base64))
+        
         # 1. Decodifica base64
         raw_bytes = base64.b64decode(request.audio_base64)
 
@@ -90,5 +94,6 @@ async def extract_audio_features(request: AudioRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
