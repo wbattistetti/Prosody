@@ -9,10 +9,10 @@ from MelodyExtractorServer.extractor.rhythm_analyzer import extract_rhythm
 from MelodyExtractorServer.extractor.pause_detector import extract_pauses
 from MelodyExtractorServer.extractor.normalizer import normalize_contours
 
-# 👉 AGGIUNTA: labeling prosodico
+# 👉 Labeling prosodico
 from MelodyExtractorServer.extractor.labeling import assign_labels
 
-# 👉 AGGIUNTA: trascrizione con OpenAI Whisper
+# 👉 Trascrizione con OpenAI Whisper
 from MelodyExtractorServer.extractor.transcriber_openai import transcribe_with_openai
 
 from MelodyExtractorServer.utils.response_builder import build_response
@@ -34,7 +34,7 @@ app.add_middleware(
 
 
 # ---------------------------------------------------------
-# ENDPOINT DI ESTRAZIONE (VERSIONE CORRETTA PER multipart/form-data)
+# ENDPOINT DI ESTRAZIONE
 # ---------------------------------------------------------
 
 @app.post("/extractor")
@@ -44,7 +44,7 @@ async def extractor(file: UploadFile = File(...)):
         audio_bytes = await file.read()
         audio_data, sr = sf.read(io.BytesIO(audio_bytes))
 
-        # 👉 Trascrizione con time-stamp (OpenAI Whisper)
+        # 👉 Trascrizione con timestamp (OpenAI Whisper)
         words = transcribe_with_openai(audio_bytes)
 
         # Estrai feature prosodiche
@@ -56,7 +56,7 @@ async def extractor(file: UploadFile = File(...)):
         # Normalizza
         normalized = normalize_contours(pitch, energy)
 
-        # 👉 Genera etichette prosodiche discrete
+        # 👉 Genera etichette prosodiche
         labels = assign_labels(
             pitch=normalized["pitch"],
             energy=normalized["energy"],
@@ -72,8 +72,8 @@ async def extractor(file: UploadFile = File(...)):
                 "rhythm": rhythm,
                 "pauses": pauses,
                 "normalized": normalized,
-                "labels": labels,   # 👉 AGGIUNTA
-                "words": words      # 👉 AGGIUNTA
+                "labels": labels,
+                "words": words
             }
         }
 
