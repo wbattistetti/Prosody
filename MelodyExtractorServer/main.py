@@ -9,8 +9,11 @@ from MelodyExtractorServer.extractor.rhythm_analyzer import extract_rhythm
 from MelodyExtractorServer.extractor.pause_detector import extract_pauses
 from MelodyExtractorServer.extractor.normalizer import normalize_contours
 
-# 👉 AGGIUNTA: import del nuovo modulo di labeling
+# 👉 AGGIUNTA: labeling prosodico
 from MelodyExtractorServer.extractor.labeling import assign_labels
+
+# 👉 AGGIUNTA: trascrizione con time-stamp
+from MelodyExtractorServer.extractor.transcriber import transcribe_with_timestamps
 
 from MelodyExtractorServer.utils.response_builder import build_response
 
@@ -50,6 +53,9 @@ async def extractor(file: UploadFile = File(...)):
         # Normalizza
         normalized = normalize_contours(pitch, energy)
 
+        # 👉 AGGIUNTA: trascrizione con time-stamp
+        words = transcribe_with_timestamps(audio_data, sr)
+
         # 👉 AGGIUNTA: genera etichette prosodiche discrete
         labels = assign_labels(
             pitch=normalized["pitch"],
@@ -66,8 +72,8 @@ async def extractor(file: UploadFile = File(...)):
                 "rhythm": rhythm,
                 "pauses": pauses,
                 "normalized": normalized,
-                # 👉 AGGIUNTA: includi le etichette nella risposta
-                "labels": labels
+                "labels": labels,   # 👉 AGGIUNTA
+                "words": words      # 👉 AGGIUNTA
             }
         }
 
