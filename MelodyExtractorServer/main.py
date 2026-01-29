@@ -1,3 +1,6 @@
+import os 
+print("DEBUG OPENAI KEY AT STARTUP:", os.getenv("OPENAI_API_KEY"))
+
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 import io
@@ -81,3 +84,4 @@ async def extractor(file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
