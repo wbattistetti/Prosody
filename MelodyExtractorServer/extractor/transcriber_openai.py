@@ -1,8 +1,6 @@
 import os
 from openai import OpenAI
 
-print("DEBUG OPENAI KEY:", os.getenv("OPENAI_API_KEY"))
-
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def transcribe_with_openai(audio_bytes):
@@ -32,3 +30,4 @@ def transcribe_with_openai(audio_bytes):
             })
 
     return words
+
