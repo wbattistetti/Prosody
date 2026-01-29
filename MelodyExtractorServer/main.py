@@ -48,8 +48,10 @@ async def extractor(file: UploadFile = File(...)):
         audio_bytes = await file.read()
         audio_bytes = convert_to_linear16(audio_bytes)
         
+        print("DEBUG after conversion:", len(audio_bytes))
         audio_data, sr = sf.read(io.BytesIO(audio_bytes))
-
+        print("DEBUG shape:", audio_data.shape, "sr:", sr)
+        
         # 👉 Trascrizione con timestamp (goolgle)
         
         words = transcribe_with_google(audio_bytes)
@@ -88,6 +90,7 @@ async def extractor(file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 
