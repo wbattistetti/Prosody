@@ -5,9 +5,10 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def transcribe_with_openai(audio_bytes):
     response = client.audio.transcriptions.create(
-        model="gpt-4o-transcribe",
+        model="gpt-4o-mini-transcribe",
         file=("audio.wav", audio_bytes),
-        response_format="json"
+        response_format="json",
+        timestamp_granularities=["word"]
     )
 
     words = []
@@ -21,3 +22,4 @@ def transcribe_with_openai(audio_bytes):
             })
 
     return words
+
