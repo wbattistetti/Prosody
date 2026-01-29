@@ -1,4 +1,5 @@
 import openai
+import os
 
 # Imposta la tua API key OpenAI
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -29,4 +30,5 @@ def transcribe_with_openai(audio_bytes):
             })
 
     return words
+
 
