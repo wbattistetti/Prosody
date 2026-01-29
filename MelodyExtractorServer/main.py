@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import io
 import soundfile as sf
 
+from MelodyExtractorServer.extractor.converter import convert_to_linear16
 from MelodyExtractorServer.extractor.pitch_analyzer import extract_pitch
 from MelodyExtractorServer.extractor.energy_analyzer import extract_energy
 from MelodyExtractorServer.extractor.rhythm_analyzer import extract_rhythm
@@ -45,9 +46,12 @@ async def extractor(file: UploadFile = File(...)):
     try:
         # Carica audio
         audio_bytes = await file.read()
+        audio_bytes = convert_to_linear16(audio_bytes)
+        
         audio_data, sr = sf.read(io.BytesIO(audio_bytes))
 
-        # 👉 Trascrizione con timestamp (OpenAI Whisper)
+        # 👉 Trascrizione con timestamp (goolgle)
+        
         words = transcribe_with_google(audio_bytes)
 
         # Estrai feature prosodiche
@@ -84,6 +88,7 @@ async def extractor(file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 
