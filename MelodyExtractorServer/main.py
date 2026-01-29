@@ -74,22 +74,33 @@ async def extractor(file: UploadFile = File(...)):
 
         # Costruisci risposta
         response = {
-            "success": True,
-            "data": {
-                "pitch": normalized["pitch"],
-                "energy": normalized["energy"],
-                "rhythm": rhythm,
-                "pauses": pauses,
-                "normalized": normalized,
-                "labels": labels,
-                "words": words
-            }
+        "success": True,
+        "data": {
+            "pitch": normalized["pitch"],
+            "energy": normalized["energy"],
+            "rhythm": rhythm,
+            "pauses": pauses,
+            "normalized": normalized,
+            "labels": labels,
+            "words": words
         }
+    }
 
-        return response
+    print(
+        "DEBUG types:",
+        type(normalized["pitch"]),
+        type(normalized["energy"]),
+        type(rhythm),
+        type(pauses),
+        type(labels),
+        type(words)
+    )
+
+    return response
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 
