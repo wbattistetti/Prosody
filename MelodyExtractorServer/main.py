@@ -9,6 +9,9 @@ from MelodyExtractorServer.extractor.rhythm_analyzer import extract_rhythm
 from MelodyExtractorServer.extractor.pause_detector import extract_pauses
 from MelodyExtractorServer.extractor.normalizer import normalize_contours
 
+# 👉 AGGIUNTA: import del nuovo modulo di labeling
+from MelodyExtractorServer.extractor.labeling import assign_labels
+
 from MelodyExtractorServer.utils.response_builder import build_response
 
 
@@ -31,47 +34,42 @@ app.add_middleware(
 # ENDPOINT DI ESTRAZIONE (VERSIONE CORRETTA PER multipart/form-data)
 # ---------------------------------------------------------
 
-@app.post("/extract")
-async def extract_audio_features(file: UploadFile = File(...)):
+@app.post("/extractor")
+async def extractor(file: UploadFile = File(...)):
     try:
-        # 1. Leggi i byte del file WAV inviato dal frontend
-        wav_bytes = await file.read()
+        # Carica audio
+        audio_bytes = await file.read()
+        audio_data, sr = sf.read(io.BytesIO(audio_bytes))
 
-        # 2. Carica l’audio in memoria
-        audio_data, sr = sf.read(io.BytesIO(wav_bytes))
-
-        # 3. Estrazione delle feature
+        # Estrai feature prosodiche
         pitch = extract_pitch(audio_data, sr)
-        print("DEBUG PITCH:", pitch)
-
         energy = extract_energy(audio_data, sr)
-        print("DEBUG ENERGY:", energy)
-
         rhythm = extract_rhythm(audio_data, sr)
-        print("DEBUG RHYTHM:", rhythm)
-
         pauses = extract_pauses(audio_data, sr)
-        print("DEBUG PAUSES:", pauses)
 
-        # 4. Normalizzazione
-        normalized = normalize_contours(
-            pitch=pitch["contour"],
-            energy=energy["contour"]
-        )
-        print("DEBUG NORMALIZED:", normalized)
+        # Normalizza
+        normalized = normalize_contours(pitch, energy)
 
-        # 5. Costruzione risposta finale
-        response = build_response(
-            pitch=pitch,
-            energy=energy,
-            rhythm=rhythm,
-            pauses=pauses,
-            normalized=normalized,
-            duration=len(audio_data) / sr,
-            sr=sr
+        # 👉 AGGIUNTA: genera etichette prosodiche discrete
+        labels = assign_labels(
+            pitch=normalized["pitch"],
+            energy=normalized["energy"],
+            pauses=pauses
         )
 
-        print("DEBUG RESPONSE:", response)
+        # Costruisci risposta
+        response = {
+            "success": True,
+            "data": {
+                "pitch": normalized["pitch"],
+                "energy": normalized["energy"],
+                "rhythm": rhythm,
+                "pauses": pauses,
+                "normalized": normalized,
+                # 👉 AGGIUNTA: includi le etichette nella risposta
+                "labels": labels
+            }
+        }
 
         return response
 
