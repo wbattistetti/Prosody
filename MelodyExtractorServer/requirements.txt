@@ -15,10 +15,4 @@ imbalanced-learn==0.10.1
 tqdm
 plotly
 python-multipart
-whisper-timestamped
-
-
-
-
-
-
+openai
