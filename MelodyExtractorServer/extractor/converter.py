@@ -4,16 +4,15 @@ import soundfile as sf
 import numpy as np
 
 def convert_to_linear16(audio_bytes: bytes) -> bytes:
-    # Leggi l'audio con soundfile (supporta WAV nativamente)
+    # 1. Leggi l'audio originale (DEVE essere WAV)
     data, sr = sf.read(io.BytesIO(audio_bytes), dtype='int16')
 
-    # Se stereo → converti in mono
+    # 2. Stereo → mono
     if len(data.shape) == 2:
         data = data.mean(axis=1).astype(np.int16)
 
-    # Se sample rate ≠ 16000 → risampling semplice
+    # 3. Risampling se necessario
     if sr != 16000:
-        # Calcolo del nuovo numero di campioni
         duration = len(data) / sr
         new_length = int(duration * 16000)
         data = np.interp(
@@ -22,5 +21,8 @@ def convert_to_linear16(audio_bytes: bytes) -> bytes:
             data
         ).astype(np.int16)
 
-    # Ritorna i raw bytes LINEAR16
-    return data.tobytes()
+    # 4. Ricostruisci un WAV valido
+    buffer = io.BytesIO()
+    sf.write(buffer, data, 16000, format='WAV', subtype='PCM_16')
+
+    return buffer.getvalue()
