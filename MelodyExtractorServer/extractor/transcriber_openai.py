@@ -1,6 +1,9 @@
-import openai
 import os
+from openai import OpenAI
+
 print("DEBUG OPENAI KEY:", os.getenv("OPENAI_API_KEY"))
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def transcribe_with_openai(audio_bytes):
     """
@@ -10,23 +13,22 @@ def transcribe_with_openai(audio_bytes):
       ...
     ]
     """
-    openai.api_key = os.getenv("OPENAI_API_KEY")
 
-    response = openai.audio.transcriptions.create(
+    response = client.audio.transcriptions.create(
         model="gpt-4o-transcribe",
         file=("audio.wav", audio_bytes),
-        response_format="verbose_json"
+        response_format="json"   # <-- CORRETTO
     )
 
     words = []
 
-    # Estrae segmenti e parole con timestamp
-    for segment in response.segments:
-        for w in segment.words:
+    # Il nuovo formato ha response["segments"]
+    for segment in response["segments"]:
+        for w in segment["words"]:
             words.append({
-                "word": w.text,
-                "start": w.start,
-                "end": w.end
+                "word": w["text"],
+                "start": w["start"],
+                "end": w["end"]
             })
 
     return words
