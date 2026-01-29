@@ -15,7 +15,7 @@ from MelodyExtractorServer.extractor.normalizer import normalize_contours
 from MelodyExtractorServer.extractor.labeling import assign_labels
 
 # 👉 Trascrizione con Google stt
-from transcriber_google import transcribe_with_google
+from MelodyExtractorServer.extractor.transcriber_google import transcribe_with_google
 
 
 from MelodyExtractorServer.utils.response_builder import build_response
@@ -84,6 +84,7 @@ async def extractor(file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 
