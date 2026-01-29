@@ -55,15 +55,23 @@ async def extract_audio_features(request: AudioRequest):
 
         # 4. Estrazione feature
         pitch = extract_pitch(audio_data, sr)
+        print("DEBUG PITCH:", pitch)
+
         energy = extract_energy(audio_data, sr)
+        print("DEBUG ENERGY:", energy)
+
         rhythm = extract_rhythm(audio_data, sr)
+        print("DEBUG RHYTHM:", rhythm)
+
         pauses = extract_pauses(audio_data, sr)
+        print("DEBUG PAUSES:", pauses)
 
         # 5. Normalizzazione
         normalized = normalize_contours(
             pitch=pitch["contour"],
             energy=energy["contour"]
         )
+        print("DEBUG NORMALIZED:", normalized)
 
         # 6. Costruzione risposta
         response = build_response(
@@ -75,12 +83,12 @@ async def extract_audio_features(request: AudioRequest):
             duration=len(audio_data) / sr,
             sr=sr
         )
+
         print("DEBUG RESPONSE:", response)
 
         return response
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 
