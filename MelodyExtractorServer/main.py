@@ -14,8 +14,9 @@ from MelodyExtractorServer.extractor.normalizer import normalize_contours
 # 👉 Labeling prosodico
 from MelodyExtractorServer.extractor.labeling import assign_labels
 
-# 👉 Trascrizione con OpenAI Whisper
-from MelodyExtractorServer.extractor.transcriber_openai import transcribe_with_openai
+# 👉 Trascrizione con Google stt
+from transcriber_google import transcribe_with_google
+
 
 from MelodyExtractorServer.utils.response_builder import build_response
 
@@ -47,7 +48,7 @@ async def extractor(file: UploadFile = File(...)):
         audio_data, sr = sf.read(io.BytesIO(audio_bytes))
 
         # 👉 Trascrizione con timestamp (OpenAI Whisper)
-        words = transcribe_with_openai(audio_bytes)
+        words = transcribe_with_google(audio_bytes)
 
         # Estrai feature prosodiche
         pitch = extract_pitch(audio_data, sr)
@@ -83,5 +84,6 @@ async def extractor(file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
