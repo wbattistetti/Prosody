@@ -1,7 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import base64
 import io
 import soundfile as sf
 
@@ -12,7 +10,6 @@ from MelodyExtractorServer.extractor.pause_detector import extract_pauses
 from MelodyExtractorServer.extractor.normalizer import normalize_contours
 
 from MelodyExtractorServer.utils.response_builder import build_response
-from MelodyExtractorServer.utils.audio_utils import convert_to_wav_pcm16
 
 
 # ---------------------------------------------------------
@@ -29,35 +26,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ---------------------------------------------------------
-# REQUEST MODEL
-# ---------------------------------------------------------
-
-class AudioRequest(BaseModel):
-    audio_base64: str
-    sample_rate: int = 16000
 
 # ---------------------------------------------------------
-# ENDPOINT DI ESTRAZIONE
+# ENDPOINT DI ESTRAZIONE (VERSIONE CORRETTA PER multipart/form-data)
 # ---------------------------------------------------------
 
 @app.post("/extract")
-async def extract_audio_features(request: AudioRequest):
+async def extract_audio_features(file: UploadFile = File(...)):
     try:
-        # DEBUG: cosa arriva dal frontend 
-        print("DEBUG RAW REQUEST:", request) 
-        print("DEBUG BASE64 TYPE:", type(request.audio_base64))
-        
-        # 1. Decodifica base64
-        raw_bytes = base64.b64decode(request.audio_base64)
+        # 1. Leggi i byte del file WAV inviato dal frontend
+        wav_bytes = await file.read()
 
-        # 2. Conversione robusta in WAV PCM16 16kHz mono
-        wav_bytes = convert_to_wav_pcm16(raw_bytes)
-
-        # 3. Caricamento WAV convertito
+        # 2. Carica l’audio in memoria
         audio_data, sr = sf.read(io.BytesIO(wav_bytes))
 
-        # 4. Estrazione feature
+        # 3. Estrazione delle feature
         pitch = extract_pitch(audio_data, sr)
         print("DEBUG PITCH:", pitch)
 
@@ -70,14 +53,14 @@ async def extract_audio_features(request: AudioRequest):
         pauses = extract_pauses(audio_data, sr)
         print("DEBUG PAUSES:", pauses)
 
-        # 5. Normalizzazione
+        # 4. Normalizzazione
         normalized = normalize_contours(
             pitch=pitch["contour"],
             energy=energy["contour"]
         )
         print("DEBUG NORMALIZED:", normalized)
 
-        # 6. Costruzione risposta
+        # 5. Costruzione risposta finale
         response = build_response(
             pitch=pitch,
             energy=energy,
@@ -94,6 +77,3 @@ async def extract_audio_features(request: AudioRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-
