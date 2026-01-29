@@ -16,3 +16,8 @@ tqdm
 plotly
 python-multipart
 openai
+google-cloud-speech
+google-auth
+google-auth-oauthlib
+google-api-core
+
