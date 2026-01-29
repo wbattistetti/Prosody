@@ -75,10 +75,12 @@ async def extract_audio_features(request: AudioRequest):
             duration=len(audio_data) / sr,
             sr=sr
         )
+        print("DEBUG RESPONSE:", response)
 
         return response
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
