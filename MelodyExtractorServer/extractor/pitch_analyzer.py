@@ -16,26 +16,14 @@ def extract_pitch(audio, sr):
 
     # Evita crash se non c'è voce
     if len(values) == 0:
-        result = {
-            "min": 0.0,
-            "max": 0.0,
-            "mean": 0.0,
-            "contour": []
-        }
-        print("DEBUG extract_pitch (no voiced frames):", result)
-        return result
+        print("DEBUG extract_pitch (no voiced frames): contour vuoto")
+        return np.array([])
 
     # Normalizzazione del contour
     contour = (values - values.min()) / (values.max() - values.min() + 1e-6)
 
-    result = {
-        "min": float(values.min()),
-        "max": float(values.max()),
-        "mean": float(values.mean()),
-        "contour": contour.tolist()
-    }
-
     # Debug per verificare cosa torna davvero
-    print("DEBUG extract_pitch:", result)
+    print("DEBUG extract_pitch — contour length:", len(contour))
 
-    return result
+    # Restituiamo SOLO il contour (array/lista), come per energy
+    return contour
