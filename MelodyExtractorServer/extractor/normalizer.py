@@ -2,8 +2,8 @@ import numpy as np
 
 def normalize_contours(pitch, energy):
     # Converti in numpy array
-    pitch = np.array(pitch)
-    energy = np.array(energy)
+    pitch = np.array(pitch, dtype=float)
+    energy = np.array(energy, dtype=float)
 
     # Lunghezza target uniforme
     target_len = 100
@@ -22,11 +22,10 @@ def normalize_contours(pitch, energy):
     )
 
     result = {
-        "pitch_norm": pitch_norm.tolist(),
-        "energy_norm": energy_norm.tolist()
+        "pitch": pitch_norm.tolist(),
+        "energy": energy_norm.tolist()
     }
 
-    # Debug per verificare cosa torna davvero
     print("DEBUG normalize_contours:", result)
 
     return result
