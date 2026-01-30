@@ -82,7 +82,7 @@ async def extractor(file: UploadFile = File(...)):
         print("CHECK 4a — pitch len:", len(pitch))
 
         energy = extract_energy(audio_data, sr)
-        print("CHECK 4b — energy len:", len(energy))
+        print("CHECK 4b — energy type:", type(energy), "value:", energy)
 
         rhythm = extract_rhythm(audio_data, sr)
         print("CHECK 4c — rhythm keys:", rhythm.keys())
@@ -125,3 +125,4 @@ async def extractor(file: UploadFile = File(...)):
     except Exception as e:
         print("🔥 EXCEPTION CAUGHT:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
+
